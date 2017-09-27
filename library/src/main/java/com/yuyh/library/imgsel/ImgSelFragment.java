@@ -221,8 +221,13 @@ public class ImgSelFragment extends Fragment implements View.OnClickListener, Vi
                         String name = data.getString(data.getColumnIndexOrThrow(IMAGE_PROJECTION[1]));
                         long dateTime = data.getLong(data.getColumnIndexOrThrow(IMAGE_PROJECTION[2]));
                         Image image = new Image(path, name, dateTime);
-                        if (!image.path.endsWith("gif"))
-                            tempImageList.add(image);
+//                        if (!image.path.endsWith("gif"))
+                        String imagePath = image.path.toLowerCase();
+                        if (imagePath.endsWith("jpg") || imagePath.endsWith("jpeg") || imagePath.endsWith("png")) {
+                            File fileImage = new File(image.path);
+                            if (fileImage.exists())
+                                tempImageList.add(image);
+                        }
                         if (!hasFolderGened) {
                             File imageFile = new File(path);
                             File folderFile = imageFile.getParentFile();
