@@ -337,39 +337,42 @@ public class ImgSelFragment extends Fragment implements View.OnClickListener, Vi
     }
 
     private void showCameraAction() {
-
-        if (config.maxNum <= Constant.imageList.size()) {
-            Toast.makeText(getActivity(), String.format(getString(R.string.maxnum), config.maxNum), Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_REQUEST_CODE);
-            return;
-        }
-
-        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-        if (cameraIntent.resolveActivity(getActivity().getPackageManager()) != null) {
-            tempFile = new File(FileUtils.createRootPath(getActivity()) + "/" + System.currentTimeMillis() + ".jpg");
-            LogUtils.e(tempFile.getAbsolutePath());
-            FileUtils.createFile(tempFile);
-
-            Uri uri = FileProvider.getUriForFile(getActivity(),
-                    FileUtils.getApplicationId(getActivity()) + ".provider", tempFile);
-
-            List<ResolveInfo> resInfoList = getActivity().getPackageManager()
-                    .queryIntentActivities(cameraIntent, PackageManager.MATCH_DEFAULT_ONLY);
-            for (ResolveInfo resolveInfo : resInfoList) {
-                String packageName = resolveInfo.activityInfo.packageName;
-                getActivity().grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                        | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            if (config.maxNum <= Constant.imageList.size()) {
+                Toast.makeText(getActivity(), String.format(getString(R.string.maxnum), config.maxNum), Toast.LENGTH_SHORT).show();
+                return;
             }
 
-            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri); //Uri.fromFile(tempFile)
-            startActivityForResult(cameraIntent, REQUEST_CAMERA);
-        } else {
+            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_REQUEST_CODE);
+                return;
+            }
+
+            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+            if (cameraIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                tempFile = new File(FileUtils.createRootPath(getActivity()) + "/" + System.currentTimeMillis() + ".jpg");
+                LogUtils.e(tempFile.getAbsolutePath());
+                FileUtils.createFile(tempFile);
+
+                Uri uri = FileProvider.getUriForFile(getActivity(),
+                        FileUtils.getApplicationId(getActivity()) + ".provider", tempFile);
+
+                List<ResolveInfo> resInfoList = getActivity().getPackageManager()
+                        .queryIntentActivities(cameraIntent, PackageManager.MATCH_DEFAULT_ONLY);
+                for (ResolveInfo resolveInfo : resInfoList) {
+                    String packageName = resolveInfo.activityInfo.packageName;
+                    getActivity().grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                            | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                }
+
+                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri); //Uri.fromFile(tempFile)
+                startActivityForResult(cameraIntent, REQUEST_CAMERA);
+            } else {
+                Toast.makeText(getActivity(), getString(R.string.open_camera_failure), Toast.LENGTH_SHORT).show();
+            }
+        }catch (Exception e){
             Toast.makeText(getActivity(), getString(R.string.open_camera_failure), Toast.LENGTH_SHORT).show();
         }
     }
