@@ -227,6 +227,8 @@ public class ImgSelFragment extends Fragment implements View.OnClickListener, Vi
                         long dateTime = data.getLong(data.getColumnIndexOrThrow(IMAGE_PROJECTION[2]));
                         Image image = new Image(path, name, dateTime);
 //                        if (!image.path.endsWith("gif"))
+                        if (image.path==null)
+                            continue;
                         String imagePath = image.path.toLowerCase();
                         if (imagePath.endsWith("jpg") || imagePath.endsWith("jpeg") || imagePath.endsWith("png")) {
                             File fileImage = new File(image.path);
