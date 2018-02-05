@@ -96,7 +96,7 @@ public class ImgSelFragment extends Fragment implements View.OnClickListener, Vi
         return view;
     }
 
-    @Override
+   @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         config = Constant.config;
@@ -107,64 +107,67 @@ public class ImgSelFragment extends Fragment implements View.OnClickListener, Vi
         }
         try {
             callback = (Callback) getActivity();
-        } catch (Exception e) {
+            if (config != null && config.allImagesText != null)
+                btnAlbumSelected.setText(config.allImagesText+"");
 
-        }
+            rvImageList.setLayoutManager(new GridLayoutManager(rvImageList.getContext(), 3));
+            rvImageList.addItemDecoration(new DividerGridItemDecoration(rvImageList.getContext()));
+            if (config.needCamera)
+                imageList.add(new Image());
 
-        btnAlbumSelected.setText(config.allImagesText);
+            imageListAdapter = new ImageListAdapter(getActivity(), imageList, config);
+            imageListAdapter.setShowCamera(config.needCamera);
+            imageListAdapter.setMutiSelect(config.multiSelect);
+            rvImageList.setAdapter(imageListAdapter);
+            imageListAdapter.setOnItemClickListener(new OnItemClickListener() {
+                @Override
+                public int onCheckedClick(int position, Image image) {
+                    return checkedImage(position, image);
+                }
 
-        rvImageList.setLayoutManager(new GridLayoutManager(rvImageList.getContext(), 3));
-        rvImageList.addItemDecoration(new DividerGridItemDecoration(rvImageList.getContext()));
-        if (config.needCamera)
-            imageList.add(new Image());
-
-        imageListAdapter = new ImageListAdapter(getActivity(), imageList, config);
-        imageListAdapter.setShowCamera(config.needCamera);
-        imageListAdapter.setMutiSelect(config.multiSelect);
-        rvImageList.setAdapter(imageListAdapter);
-        imageListAdapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public int onCheckedClick(int position, Image image) {
-                return checkedImage(position, image);
-            }
-
-            @Override
-            public void onImageClick(int position, Image image) {
-                if (config.needCamera && position == 0) {
-                    showCameraAction();
-                } else {
-                    if (config.multiSelect) {
-                        viewPager.setAdapter((previewAdapter = new PreviewAdapter(getActivity(), imageList, config)));
-                        previewAdapter.setListener(new OnItemClickListener() {
-                            @Override
-                            public int onCheckedClick(int position, Image image) {
-                                return checkedImage(position, image);
-                            }
-
-                            @Override
-                            public void onImageClick(int position, Image image) {
-                                hidePreview();
-                            }
-                        });
-                        if (config.needCamera) {
-                            callback.onPreviewChanged(position, imageList.size() - 1, true);
-                        } else {
-                            callback.onPreviewChanged(position + 1, imageList.size(), true);
-                        }
-                        viewPager.setCurrentItem(config.needCamera ? position - 1 : position);
-                        viewPager.setVisibility(View.VISIBLE);
+                @Override
+                public void onImageClick(int position, Image image) {
+                    if (config.needCamera && position == 0) {
+                        showCameraAction();
                     } else {
-                        if (callback != null) {
-                            callback.onSingleImageSelected(image.path);
+                        if (config.multiSelect) {
+                            viewPager.setAdapter((previewAdapter = new PreviewAdapter(getActivity(), imageList, config)));
+                            previewAdapter.setListener(new OnItemClickListener() {
+                                @Override
+                                public int onCheckedClick(int position, Image image) {
+                                    return checkedImage(position, image);
+                                }
+
+                                @Override
+                                public void onImageClick(int position, Image image) {
+                                    hidePreview();
+                                }
+                            });
+                            if (config.needCamera) {
+                                callback.onPreviewChanged(position, imageList.size() - 1, true);
+                            } else {
+                                callback.onPreviewChanged(position + 1, imageList.size(), true);
+                            }
+                            viewPager.setCurrentItem(config.needCamera ? position - 1 : position);
+                            viewPager.setVisibility(View.VISIBLE);
+                        } else {
+                            if (callback != null) {
+                                callback.onSingleImageSelected(image.path);
+                            }
                         }
                     }
                 }
+            });
+
+            folderListAdapter = new FolderListAdapter(getActivity(), folderList, config);
+
+            getActivity().getSupportLoaderManager().initLoader(LOADER_ALL, null, mLoaderCallback);
+
+        } catch (Exception e) {
+            if (getActivity() != null) {
+                getActivity().finish();
             }
-        });
-
-        folderListAdapter = new FolderListAdapter(getActivity(), folderList, config);
-
-        getActivity().getSupportLoaderManager().initLoader(LOADER_ALL, null, mLoaderCallback);
+        }
     }
 
     private int checkedImage(int position, Image image) {
